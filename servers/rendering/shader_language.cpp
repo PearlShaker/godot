@@ -3043,7 +3043,7 @@ const ShaderLanguage::BuiltinFuncDef ShaderLanguage::builtin_func_defs[] = {
 	{ "frexp", TYPE_VEC4, { TYPE_VEC4, TYPE_IVEC4, TYPE_VOID }, { "x", "exp" }, TAG_GLOBAL, true },
 
 	{ "sample_shadow_atlas", TYPE_FLOAT, { TYPE_VEC2, TYPE_VOID }, { "uv" }, TAG_GLOBAL, true },
-	{ "sample_shadow_atlas_vertex", TYPE_FLOAT, { TYPE_SAMPLER2D, TYPE_VEC3, TYPE_VOID }, { "atlas", "vertex" }, TAG_GLOBAL, true },
+	{ "sample_shadow_atlas_vertex", TYPE_FLOAT, { TYPE_SAMPLER2D, TYPE_UINT, TYPE_VEC3, TYPE_VOID }, { "atlas", "i", "vertex" }, TAG_GLOBAL, true },
 	{ "sample_directional_shadow", TYPE_FLOAT, { TYPE_UINT, TYPE_VEC3, TYPE_VOID }, { "light_idx", "vertex" }, TAG_GLOBAL, true },
 
 	{ nullptr, TYPE_VOID, { TYPE_VOID }, { "" }, TAG_GLOBAL, false }
