@@ -187,6 +187,20 @@ float sample_directional_soft_shadow(texture2D shadow, vec3 pssm_coord, vec2 tex
 
 #endif // SHADOWS_DISABLED
 
+float sample_shadow_atlas(vec2 uv) {
+	float shadow = 1.0;
+
+#ifndef SHADOWS_DISABLED
+	shadow = textureLod(sampler2D(directional_shadow_atlas, material_samplers[SAMPLER_LINEAR_CLAMP]), uv, 0.0).r;
+#endif // SHADOWS_DISABLED
+
+	return shadow;
+}
+
+float sample_shadow_atlas_vertex(sampler2D atlas, vec3 vertex) {
+	return 1.0;
+}
+
 float light_process_directional_shadow(uint i, vec3 vertex, highp vec2 directional_shadow_pixel_size){
 	float shadow = 1.0;
 
