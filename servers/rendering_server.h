@@ -842,7 +842,7 @@ public:
 
 	virtual RID viewport_get_render_target(RID p_viewport) const = 0;
 	virtual RID viewport_get_texture(RID p_viewport) const = 0;
-	virtual RID viewport_get_dsa_texture(RID p_viewport) { return RID(); }
+	virtual RID viewport_get_dsa_texture(RID p_viewport) const = 0;
 
 	enum ViewportEnvironmentMode {
 		VIEWPORT_ENVIRONMENT_DISABLED,

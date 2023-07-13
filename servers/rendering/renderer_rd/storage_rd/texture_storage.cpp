@@ -2708,11 +2708,9 @@ void TextureStorage::_update_render_target(RenderTarget *rt) {
 
 		tex->rd_texture = RID();
 
-		//create shared textures to the color buffer,
-		//so transparent can be supported
 		RD::TextureView view;
 		view.format_override = rt->dsa_format;
-		tex->rd_texture = RD::get_singleton()->texture_create_shared(view, rt->dsa);
+		//tex->rd_texture = RD::get_singleton()->texture_create_shared(view, rt->dsa);
 
 		tex->rd_view = view;
 		tex->width = rt->dsa_size.width;
