@@ -2354,7 +2354,7 @@ void LightStorage::update_directional_shadow_atlas() {
 		tf.format = directional_shadow.use_16_bits ? RD::DATA_FORMAT_D16_UNORM : RD::DATA_FORMAT_D32_SFLOAT;
 		tf.width = directional_shadow.size;
 		tf.height = directional_shadow.size;
-		tf.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		tf.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | RD::TEXTURE_USAGE_CAN_COPY_FROM_BIT;
 
 		directional_shadow.depth = RD::get_singleton()->texture_create(tf, RD::TextureView());
 		Vector<RID> fb_tex;

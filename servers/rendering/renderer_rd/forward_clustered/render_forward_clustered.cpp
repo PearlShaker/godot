@@ -2113,6 +2113,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 		RID render_target = rb->get_render_target();
 		RendererRD::TextureStorage *texture_storage = RendererRD::TextureStorage::get_singleton();
 
+		//copy_effects->copy_to_fb_rect(shadow_atlas_texture, texture_storage->render_target_get_dsa_framebuffer(render_target), Rect2i(Vector2(), rtsize), false, true);
 		copy_effects->copy_to_rect(shadow_atlas_texture, texture_storage->render_target_get_dsa(render_target), Rect2i(Vector2(), rtsize), false, true);
 	}
 

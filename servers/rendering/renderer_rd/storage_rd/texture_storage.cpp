@@ -2626,16 +2626,20 @@ void TextureStorage::_update_render_target(RenderTarget *rt) {
 	// Create DSA texture
 	RD::TextureFormat rd_dsa_attachment_format;
 	RD::TextureView dsa_rd_view;
-	rd_color_attachment_format.format = rt->dsa_format;
+	//rd_dsa_attachment_format.format = RD::DATA_FORMAT_D16_UNORM;
+	rd_dsa_attachment_format.format = RD::DATA_FORMAT_R8G8B8A8_UINT;
 	//rd_color_attachment_format.width = rt->dsa_size.width;
-	rd_color_attachment_format.width = 4096;
+	rd_dsa_attachment_format.width = 4096;
 	//rd_color_attachment_format.height = rt->dsa_size.height;
-	rd_color_attachment_format.height = 4096;
-	rd_color_attachment_format.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT | RD::TEXTURE_USAGE_CAN_COPY_TO_BIT | RD::TEXTURE_USAGE_STORAGE_BIT;
-	//rd_color_attachment_format.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT;
+	rd_dsa_attachment_format.height = 4096;
+	rd_dsa_attachment_format.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT | RD::TEXTURE_USAGE_CAN_COPY_TO_BIT | RD::TEXTURE_USAGE_STORAGE_BIT | RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
 
 	rt->dsa = RD::get_singleton()->texture_create(rd_dsa_attachment_format, dsa_rd_view);
 	ERR_FAIL_COND(rt->dsa.is_null());
+
+	Vector<RID> fb_tex;
+	fb_tex.push_back(rt->dsa);
+	rt->dsa_fb = RD::get_singleton()->framebuffer_create(fb_tex);
 
 	if (rt->msaa != RS::VIEWPORT_MSAA_DISABLED) {
 		// Use the texture format of the color attachment for the multisample color attachment.
@@ -2968,6 +2972,14 @@ RID RendererRD::TextureStorage::render_target_get_dsa(RID p_render_target)
 	ERR_FAIL_COND_V(!rt, RID());
 
 	return rt->dsa;
+}
+
+RID RendererRD::TextureStorage::render_target_get_dsa_framebuffer(RID p_render_target)
+{
+	RenderTarget *rt = render_target_owner.get_or_null(p_render_target);
+	ERR_FAIL_COND_V(!rt, RID());
+
+	return rt->dsa_fb;
 }
 
 RID TextureStorage::render_target_get_rd_texture(RID p_render_target) {
