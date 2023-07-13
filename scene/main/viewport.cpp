@@ -226,6 +226,106 @@ ViewportTexture::~ViewportTexture() {
 	}
 }
 
+void ViewportDsaTexture::_setup_local_to_scene(const Node* p_loc_scene)
+{
+	// Always reset this, even if this call fails with an error.
+	vp_pending = false;
+
+	Node *vpn = p_loc_scene->get_node_or_null(path);
+	ERR_FAIL_NULL_MSG(vpn, "Path to node is invalid: '" + path + "'.");
+	vp = Object::cast_to<Viewport>(vpn);
+	ERR_FAIL_NULL_MSG(vp, "Path to node does not point to a viewport: '" + path + "'.");
+
+	vp->dsa_textures.insert(this);
+
+	ERR_FAIL_NULL(RenderingServer::get_singleton());
+	if (proxy_ph.is_valid()) {
+		RS::get_singleton()->texture_proxy_update(proxy, vp->dsa_copy_rid);
+		RS::get_singleton()->free(proxy_ph);
+		proxy_ph = RID();
+	} else {
+		ERR_FAIL_COND(proxy.is_valid()); // Should be invalid.
+		proxy = RS::get_singleton()->texture_proxy_create(vp->dsa_copy_rid);
+	}
+	vp_changed = false;
+
+	emit_changed();
+}
+
+void ViewportDsaTexture::setup_local_to_scene()
+{
+	// For the same target viewport, setup is only allowed once to prevent multiple free or multiple creations.
+	if (!vp_changed) {
+		return;
+	}
+
+	if (vp_pending) {
+		return;
+	}
+
+	Node *loc_scene = get_local_scene();
+	if (!loc_scene) {
+		return;
+	}
+
+	if (vp) {
+		vp->dsa_textures.erase(this);
+		vp = nullptr;
+	}
+
+	if (loc_scene->is_ready()) {
+		_setup_local_to_scene(loc_scene);
+	} else {
+		loc_scene->connect(SNAME("ready"), callable_mp(this, &ViewportDsaTexture::_setup_local_to_scene).bind(loc_scene), CONNECT_ONE_SHOT);
+		vp_pending = true;
+	}
+}
+
+int ViewportDsaTexture::get_width() const
+{
+	return 4096;
+}
+
+int ViewportDsaTexture::get_height() const
+{
+	return 4096;
+}
+
+Size2 ViewportDsaTexture::get_size() const
+{
+	return Size2(4096, 4096);
+}
+
+RID ViewportDsaTexture::get_rid() const
+{
+	if (proxy.is_null()) {
+		proxy_ph = RS::get_singleton()->texture_2d_placeholder_create();
+		proxy = RS::get_singleton()->texture_proxy_create(proxy_ph);
+	}
+	return proxy;
+}
+
+Ref<Image> ViewportDsaTexture::get_image() const
+{
+	if (!vp) {
+		if (!vp_pending) {
+			ERR_PRINT("Viewport Texture must be set to use it.");
+		}
+		return Ref<Image>();
+	}
+
+	return RS::get_singleton()->texture_2d_get(vp->dsa_copy_rid);
+}
+
+ViewportDsaTexture::ViewportDsaTexture()
+{
+}
+
+ViewportDsaTexture::~ViewportDsaTexture()
+{
+}
+
+
 void Viewport::_process_dirty_canvas_parent_orders() {
 	for (const ObjectID &id : gui.canvas_parents_with_dirty_order) {
 		Object *obj = ObjectDB::get_instance(id);
@@ -4661,3 +4761,4 @@ SubViewport::SubViewport() {
 }
 
 SubViewport::~SubViewport() {}
+

@@ -2578,10 +2578,10 @@ void TextureStorage::_update_render_target(RenderTarget *rt) {
 		Texture *tex = get_texture(rt->texture);
 		tex->is_render_target = true;
 	}
-	if (rt->dsa_texture.is_null()) {
-		rt->dsa_texture = texture_allocate();
-		texture_2d_placeholder_initialize(rt->dsa_texture);
-		Texture *tex = get_texture(rt->dsa_texture);
+	if (rt->dsa.is_null()) {
+		rt->dsa = texture_allocate();
+		texture_2d_placeholder_initialize(rt->dsa);
+		Texture *tex = get_texture(rt->dsa);
 		tex->is_render_target = false;
 	}
 
@@ -2627,9 +2627,12 @@ void TextureStorage::_update_render_target(RenderTarget *rt) {
 	RD::TextureFormat rd_dsa_attachment_format;
 	RD::TextureView dsa_rd_view;
 	rd_color_attachment_format.format = rt->dsa_format;
-	rd_color_attachment_format.width = rt->dsa_size.width;
-	rd_color_attachment_format.height = rt->dsa_size.height;
-	rd_color_attachment_format.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT | RD::TEXTURE_USAGE_CAN_COPY_TO_BIT;
+	//rd_color_attachment_format.width = rt->dsa_size.width;
+	rd_color_attachment_format.width = 4096;
+	//rd_color_attachment_format.height = rt->dsa_size.height;
+	rd_color_attachment_format.height = 4096;
+	rd_color_attachment_format.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT | RD::TEXTURE_USAGE_CAN_COPY_TO_BIT | RD::TEXTURE_USAGE_STORAGE_BIT;
+	//rd_color_attachment_format.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT;
 
 	rt->dsa = RD::get_singleton()->texture_create(rd_dsa_attachment_format, dsa_rd_view);
 	ERR_FAIL_COND(rt->dsa.is_null());
@@ -2694,37 +2697,41 @@ void TextureStorage::_update_render_target(RenderTarget *rt) {
 		}
 	}
 
-	{ //update dsa texture
+	//{ //update dsa texture
 
-		Texture *tex = get_texture(rt->dsa_texture);
+	//	Texture *tex = get_texture(rt->dsa);
 
-		//free existing textures
-		if (RD::get_singleton()->texture_is_valid(tex->rd_texture)) {
-			RD::get_singleton()->free(tex->rd_texture);
-		}
-		if (RD::get_singleton()->texture_is_valid(tex->rd_texture_srgb)) {
-			RD::get_singleton()->free(tex->rd_texture_srgb);
-		}
+	//	//free existing textures
+	//	if (RD::get_singleton()->texture_is_valid(tex->rd_texture)) {
+	//		RD::get_singleton()->free(tex->rd_texture);
+	//	}
+	//	if (RD::get_singleton()->texture_is_valid(tex->rd_texture_srgb)) {
+	//		RD::get_singleton()->free(tex->rd_texture_srgb);
+	//	}
 
-		tex->rd_texture = RID();
+	//	tex->rd_texture = RID();
 
-		RD::TextureView view;
-		view.format_override = rt->dsa_format;
-		//tex->rd_texture = RD::get_singleton()->texture_create_shared(view, rt->dsa);
+	//	RD::TextureView view;
+	//	view.format_override = rt->dsa_format;
+	//	tex->rd_texture = RD::get_singleton()->texture_create_shared(view, rt->dsa);
 
-		tex->rd_view = view;
-		tex->width = rt->dsa_size.width;
-		tex->height = rt->dsa_size.height;
-		tex->width_2d = rt->dsa_size.width;
-		tex->height_2d = rt->dsa_size.height;
-		tex->rd_format = rt->dsa_format;
-		tex->format = rt->image_format;
+	//	tex->rd_view = view;
+	//	//tex->width = rt->dsa_size.width;
+	//	//tex->height = rt->dsa_size.height;
+	//	//tex->width_2d = rt->dsa_size.width;
+	//	//tex->height_2d = rt->dsa_size.height;
+	//	tex->width = 4096;
+	//	tex->height = 4096;
+	//	tex->width_2d = 4096;
+	//	tex->height_2d = 4096;
+	//	tex->rd_format = rt->dsa_format;
+	//	tex->format = rt->image_format;
 
-		Vector<RID> proxies = tex->proxies; //make a copy, since update may change it
-		for (int i = 0; i < proxies.size(); i++) {
-			texture_proxy_update(proxies[i], rt->texture);
-		}
-	}
+	//	Vector<RID> proxies = tex->proxies; //make a copy, since update may change it
+	//	for (int i = 0; i < proxies.size(); i++) {
+	//		texture_proxy_update(proxies[i], rt->dsa);
+	//	}
+	//}
 }
 
 void TextureStorage::_create_render_target_backbuffer(RenderTarget *rt) {
@@ -2826,7 +2833,7 @@ RID TextureStorage::render_target_get_dsa_texture(RID p_render_target) {
 	RenderTarget *rt = render_target_owner.get_or_null(p_render_target);
 	ERR_FAIL_COND_V(!rt, RID());
 
-	return rt->dsa_texture;
+	return rt->dsa;
 }
 
 void TextureStorage::render_target_set_override(RID p_render_target, RID p_color_texture, RID p_depth_texture, RID p_velocity_texture) {
@@ -2953,6 +2960,14 @@ RID TextureStorage::render_target_get_rd_framebuffer(RID p_render_target) {
 	ERR_FAIL_COND_V(!rt, RID());
 
 	return rt->get_framebuffer();
+}
+
+RID RendererRD::TextureStorage::render_target_get_dsa(RID p_render_target)
+{
+	RenderTarget *rt = render_target_owner.get_or_null(p_render_target);
+	ERR_FAIL_COND_V(!rt, RID());
+
+	return rt->dsa;
 }
 
 RID TextureStorage::render_target_get_rd_texture(RID p_render_target) {

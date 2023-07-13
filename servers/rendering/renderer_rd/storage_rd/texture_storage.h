@@ -390,7 +390,6 @@ private:
 		Size2i dsa_size;
 		RD::DataFormat dsa_format;
 		RID dsa;
-		RID dsa_texture;
 
 		//clear request
 		bool clear_requested;
@@ -735,6 +734,7 @@ public:
 	virtual RID render_target_get_dsa_texture(RID p_render_target) override;
 
 	RID render_target_get_rd_framebuffer(RID p_render_target);
+	RID render_target_get_dsa(RID p_render_target);
 	RID render_target_get_rd_texture(RID p_render_target);
 	RID render_target_get_rd_texture_slice(RID p_render_target, uint32_t p_layer);
 	RID render_target_get_rd_texture_msaa(RID p_render_target);

@@ -2105,6 +2105,17 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 		_render_buffers_post_process_and_tonemap(p_render_data);
 	}
 
+	// Viewport DSA
+	if (RendererRD::LightStorage::get_singleton()->directional_shadow_get_texture().is_valid()) {
+		RID shadow_atlas_texture = RendererRD::LightStorage::get_singleton()->directional_shadow_get_texture();
+
+		Size2i rtsize{4096, 4096};
+		RID render_target = rb->get_render_target();
+		RendererRD::TextureStorage *texture_storage = RendererRD::TextureStorage::get_singleton();
+
+		copy_effects->copy_to_rect(shadow_atlas_texture, texture_storage->render_target_get_dsa(render_target), Rect2i(Vector2(), rtsize), false, true);
+	}
+
 	if (rb_data.is_valid()) {
 		_render_buffers_debug_draw(rb, p_render_data->shadow_atlas, p_render_data->occluder_debug_tex);
 

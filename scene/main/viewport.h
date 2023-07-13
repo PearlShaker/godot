@@ -55,6 +55,7 @@ class World2D;
 class ViewportTexture : public Texture2D {
 	GDCLASS(ViewportTexture, Texture2D);
 
+protected:
 	NodePath path;
 
 	friend class Viewport;
@@ -62,12 +63,11 @@ class ViewportTexture : public Texture2D {
 	bool vp_pending = false;
 	bool vp_changed = false;
 
-	void _setup_local_to_scene(const Node *p_loc_scene);
+	virtual void _setup_local_to_scene(const Node *p_loc_scene);
 
 	mutable RID proxy_ph;
 	mutable RID proxy;
 
-protected:
 	static void _bind_methods();
 
 public:
@@ -91,6 +91,22 @@ public:
 
 class ViewportDsaTexture : public ViewportTexture {
 	GDCLASS(ViewportDsaTexture, ViewportTexture);
+
+protected:
+	virtual void _setup_local_to_scene(const Node *p_loc_scene) override;
+
+public:
+	virtual void setup_local_to_scene() override;
+
+	virtual int get_width() const override;
+	virtual int get_height() const override;
+	virtual Size2 get_size() const override;
+	virtual RID get_rid() const override;
+
+	virtual Ref<Image> get_image() const override;
+
+	ViewportDsaTexture();
+	~ViewportDsaTexture();
 };
 
 class Viewport : public Node {
