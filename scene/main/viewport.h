@@ -89,6 +89,10 @@ public:
 	~ViewportTexture();
 };
 
+class ViewportDsaTexture : public ViewportTexture {
+	GDCLASS(ViewportDsaTexture, ViewportTexture);
+};
+
 class Viewport : public Node {
 	GDCLASS(Viewport, Node);
 
@@ -482,6 +486,11 @@ protected:
 	static void _bind_methods();
 
 public:
+
+	RID dsa_copy_rid;
+	Ref<ViewportDsaTexture> default_dsa;
+	HashSet<ViewportDsaTexture *> dsa_textures;
+
 	void canvas_parent_mark_dirty(Node *p_node);
 
 	uint64_t get_processed_events_count() const { return event_count; }

@@ -386,6 +386,12 @@ private:
 		RID texture;
 		bool was_used;
 
+		//directional shadow atlas output
+		Size2i dsa_size;
+		RD::DataFormat dsa_format;
+		RID dsa;
+		RID dsa_texture;
+
 		//clear request
 		bool clear_requested;
 		Color clear_color;
@@ -726,6 +732,7 @@ public:
 	RID render_target_get_override_velocity_slice(RID p_render_target, const uint32_t p_layer) const;
 
 	virtual RID render_target_get_texture(RID p_render_target) override;
+	virtual RID render_target_get_dsa_texture(RID p_render_target) override;
 
 	RID render_target_get_rd_framebuffer(RID p_render_target);
 	RID render_target_get_rd_texture(RID p_render_target);

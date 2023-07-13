@@ -172,6 +172,7 @@ public:
 
 	// get textures
 	virtual RID render_target_get_texture(RID p_render_target) = 0;
+	virtual RID render_target_get_dsa_texture(RID p_render_target) { return RID(); };
 };
 
 #endif // TEXTURE_STORAGE_H

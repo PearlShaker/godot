@@ -322,6 +322,7 @@ void register_scene_types() {
 	GDREGISTER_ABSTRACT_CLASS(Viewport);
 	GDREGISTER_CLASS(SubViewport);
 	GDREGISTER_CLASS(ViewportTexture);
+	GDREGISTER_CLASS(ViewportDsaTexture);
 
 	GDREGISTER_ABSTRACT_CLASS(MultiplayerPeer);
 	GDREGISTER_CLASS(MultiplayerPeerExtension);

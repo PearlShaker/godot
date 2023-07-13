@@ -60,6 +60,11 @@
 #include "servers/audio_server.h"
 #include "servers/rendering/rendering_server_globals.h"
 
+// Customization
+#include "servers/rendering/renderer_rd/renderer_scene_render_rd.h"
+#include "servers/rendering/renderer_rd/storage_rd/light_storage.h"
+
+
 void ViewportTexture::setup_local_to_scene() {
 	// For the same target viewport, setup is only allowed once to prevent multiple free or multiple creations.
 	if (!vp_changed) {
@@ -166,6 +171,7 @@ Ref<Image> ViewportTexture::get_image() const {
 		}
 		return Ref<Image>();
 	}
+
 	return RS::get_singleton()->texture_2d_get(vp->texture_rid);
 }
 
@@ -4414,6 +4420,12 @@ Viewport::Viewport() {
 	default_texture->vp = const_cast<Viewport *>(this);
 	viewport_textures.insert(default_texture.ptr());
 	default_texture->proxy = RS::get_singleton()->texture_proxy_create(texture_rid);
+
+	dsa_copy_rid = RenderingServer::get_singleton()->viewport_get_dsa_texture(viewport);
+	default_dsa.instantiate();
+	default_dsa->vp = const_cast<Viewport *>(this);
+	dsa_textures.insert(default_dsa.ptr());
+	default_dsa->proxy = RS::get_singleton()->texture_proxy_create(dsa_copy_rid);
 
 	canvas_layers.insert(nullptr); // This eases picking code (interpreted as the canvas of the Viewport).
 
