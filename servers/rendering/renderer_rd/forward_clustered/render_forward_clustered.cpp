@@ -2105,6 +2105,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 		_render_buffers_post_process_and_tonemap(p_render_data);
 	}
 
+	RD::get_singleton()->draw_command_begin_label("Copy Directional Shadow Atlas To Texture");
 	// Viewport DSA
 	if (RendererRD::LightStorage::get_singleton()->directional_shadow_get_texture().is_valid()) {
 		RID shadow_atlas_texture = RendererRD::LightStorage::get_singleton()->directional_shadow_get_texture();
@@ -2116,6 +2117,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 		//copy_effects->copy_to_fb_rect(shadow_atlas_texture, texture_storage->render_target_get_dsa_framebuffer(render_target), Rect2i(Vector2(), rtsize), false, true);
 		copy_effects->copy_to_rect(shadow_atlas_texture, texture_storage->render_target_get_dsa(render_target), Rect2i(Vector2(), rtsize), false, true);
 	}
+	RD::get_singleton()->draw_command_end_label();
 
 	if (rb_data.is_valid()) {
 		_render_buffers_debug_draw(rb, p_render_data->shadow_atlas, p_render_data->occluder_debug_tex);
