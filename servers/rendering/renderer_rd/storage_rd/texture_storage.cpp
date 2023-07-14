@@ -2578,10 +2578,10 @@ void TextureStorage::_update_render_target(RenderTarget *rt) {
 		Texture *tex = get_texture(rt->texture);
 		tex->is_render_target = true;
 	}
-	if (rt->dsa.is_null()) {
-		rt->dsa = texture_allocate();
-		texture_2d_placeholder_initialize(rt->dsa);
-		Texture *tex = get_texture(rt->dsa);
+	if (rt->dsa_texture.is_null()) {
+		rt->dsa_texture = texture_allocate();
+		texture_2d_placeholder_initialize(rt->dsa_texture);
+		Texture *tex = get_texture(rt->dsa_texture);
 		tex->is_render_target = false;
 	}
 
@@ -2621,25 +2621,24 @@ void TextureStorage::_update_render_target(RenderTarget *rt) {
 
 	// TODO see if we can lazy create this once we actually use it as we may not need to create this if we have an overridden color buffer...
 	rt->color = RD::get_singleton()->texture_create(rd_color_attachment_format, rd_view);
-	ERR_FAIL_COND(rt->color.is_null());
+
 
 	// Create DSA texture
 	RD::TextureFormat rd_dsa_attachment_format;
-	RD::TextureView dsa_rd_view;
-	//rd_dsa_attachment_format.format = RD::DATA_FORMAT_D16_UNORM;
-	rd_dsa_attachment_format.format = RD::DATA_FORMAT_R8G8B8A8_UINT;
+	rd_dsa_attachment_format.format = RD::DATA_FORMAT_R16_UNORM;
+	//rd_dsa_attachment_format.format = RD::DATA_FORMAT_R8G8B8A8_UINT;
 	//rd_color_attachment_format.width = rt->dsa_size.width;
 	rd_dsa_attachment_format.width = 4096;
 	//rd_color_attachment_format.height = rt->dsa_size.height;
 	rd_dsa_attachment_format.height = 4096;
-	rd_dsa_attachment_format.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT | RD::TEXTURE_USAGE_CAN_COPY_TO_BIT | RD::TEXTURE_USAGE_STORAGE_BIT | RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
+	rd_dsa_attachment_format.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT | RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
+	rd_dsa_attachment_format.usage_bits |= RD::TEXTURE_USAGE_CAN_COPY_FROM_BIT | RD::TEXTURE_USAGE_CAN_COPY_TO_BIT;
+	//rd_dsa_attachment_format.shareable_formats.push_back(RD::DATA_FORMAT_R16_UNORM);
+	//rd_dsa_attachment_format.shareable_formats.push_back(RD::DATA_FORMAT_R8G8B8A8_UINT);
 
-	rt->dsa = RD::get_singleton()->texture_create(rd_dsa_attachment_format, dsa_rd_view);
+	rt->dsa = RD::get_singleton()->texture_create(rd_dsa_attachment_format, RD::TextureView());
 	ERR_FAIL_COND(rt->dsa.is_null());
 
-	Vector<RID> fb_tex;
-	fb_tex.push_back(rt->dsa);
-	rt->dsa_fb = RD::get_singleton()->framebuffer_create(fb_tex);
 
 	if (rt->msaa != RS::VIEWPORT_MSAA_DISABLED) {
 		// Use the texture format of the color attachment for the multisample color attachment.
@@ -2701,41 +2700,39 @@ void TextureStorage::_update_render_target(RenderTarget *rt) {
 		}
 	}
 
-	//{ //update dsa texture
+	{ //update dsa texture
 
-	//	Texture *tex = get_texture(rt->dsa);
+		Texture *tex = get_texture(rt->dsa_texture);
 
-	//	//free existing textures
-	//	if (RD::get_singleton()->texture_is_valid(tex->rd_texture)) {
-	//		RD::get_singleton()->free(tex->rd_texture);
-	//	}
-	//	if (RD::get_singleton()->texture_is_valid(tex->rd_texture_srgb)) {
-	//		RD::get_singleton()->free(tex->rd_texture_srgb);
-	//	}
+		//free existing textures
+		if (RD::get_singleton()->texture_is_valid(tex->rd_texture)) {
+			RD::get_singleton()->free(tex->rd_texture);
+		}
 
-	//	tex->rd_texture = RID();
+		tex->rd_texture = RID();
 
-	//	RD::TextureView view;
-	//	view.format_override = rt->dsa_format;
-	//	tex->rd_texture = RD::get_singleton()->texture_create_shared(view, rt->dsa);
+		RD::TextureView view;
+		view.format_override = RD::DATA_FORMAT_R16_UNORM;
+		tex->rd_texture = RD::get_singleton()->texture_create_shared(view, rt->dsa);
 
-	//	tex->rd_view = view;
-	//	//tex->width = rt->dsa_size.width;
-	//	//tex->height = rt->dsa_size.height;
-	//	//tex->width_2d = rt->dsa_size.width;
-	//	//tex->height_2d = rt->dsa_size.height;
-	//	tex->width = 4096;
-	//	tex->height = 4096;
-	//	tex->width_2d = 4096;
-	//	tex->height_2d = 4096;
-	//	tex->rd_format = rt->dsa_format;
-	//	tex->format = rt->image_format;
+		tex->rd_view = view;
+		//tex->width = rt->dsa_size.width;
+		//tex->height = rt->dsa_size.height;
+		//tex->width_2d = rt->dsa_size.width;
+		//tex->height_2d = rt->dsa_size.height;
+		tex->width = 4096;
+		tex->height = 4096;
+		tex->width_2d = 4096;
+		tex->height_2d = 4096;
+		tex->rd_format = RD::DATA_FORMAT_R16_UNORM;
+		tex->rd_format_srgb = RD::DATA_FORMAT_R16_UNORM;
+		tex->format = Image::FORMAT_RGH;
 
-	//	Vector<RID> proxies = tex->proxies; //make a copy, since update may change it
-	//	for (int i = 0; i < proxies.size(); i++) {
-	//		texture_proxy_update(proxies[i], rt->dsa);
-	//	}
-	//}
+		Vector<RID> proxies = tex->proxies; //make a copy, since update may change it
+		for (int i = 0; i < proxies.size(); i++) {
+			texture_proxy_update(proxies[i], rt->dsa_texture);
+		}
+	}
 }
 
 void TextureStorage::_create_render_target_backbuffer(RenderTarget *rt) {
@@ -2837,7 +2834,7 @@ RID TextureStorage::render_target_get_dsa_texture(RID p_render_target) {
 	RenderTarget *rt = render_target_owner.get_or_null(p_render_target);
 	ERR_FAIL_COND_V(!rt, RID());
 
-	return rt->dsa;
+	return rt->dsa_texture;
 }
 
 void TextureStorage::render_target_set_override(RID p_render_target, RID p_color_texture, RID p_depth_texture, RID p_velocity_texture) {

@@ -55,7 +55,6 @@ class World2D;
 class ViewportTexture : public Texture2D {
 	GDCLASS(ViewportTexture, Texture2D);
 
-protected:
 	NodePath path;
 
 	friend class Viewport;
@@ -71,7 +70,7 @@ protected:
 	static void _bind_methods();
 
 public:
-	void set_viewport_path_in_scene(const NodePath &p_path);
+	virtual void set_viewport_path_in_scene(const NodePath &p_path);
 	NodePath get_viewport_path_in_scene() const;
 
 	virtual void setup_local_to_scene() override;
@@ -89,19 +88,35 @@ public:
 	~ViewportTexture();
 };
 
-class ViewportDsaTexture : public ViewportTexture {
-	GDCLASS(ViewportDsaTexture, ViewportTexture);
+class ViewportDsaTexture : public Texture2D {
+	GDCLASS(ViewportDsaTexture, Texture2D);
 
-protected:
-	virtual void _setup_local_to_scene(const Node *p_loc_scene) override;
+	NodePath path;
+
+	friend class Viewport;
+	Viewport *vp = nullptr;
+	bool vp_pending = false;
+	bool vp_changed = false;
+
+	virtual void _setup_local_to_scene(const Node *p_loc_scene);
+
+	mutable RID proxy_ph;
+	mutable RID proxy;
+
+	static void _bind_methods();
 
 public:
+	virtual void set_viewport_path_in_scene(const NodePath &p_path);
+	NodePath get_viewport_path_in_scene() const;
+
 	virtual void setup_local_to_scene() override;
 
 	virtual int get_width() const override;
 	virtual int get_height() const override;
 	virtual Size2 get_size() const override;
 	virtual RID get_rid() const override;
+
+	virtual bool has_alpha() const override;
 
 	virtual Ref<Image> get_image() const override;
 

@@ -252,6 +252,45 @@ void ViewportDsaTexture::_setup_local_to_scene(const Node* p_loc_scene)
 	emit_changed();
 }
 
+void ViewportDsaTexture::_bind_methods()
+{
+	ClassDB::bind_method(D_METHOD("set_viewport_path_in_scene", "path"), &ViewportDsaTexture::set_viewport_path_in_scene);
+	ClassDB::bind_method(D_METHOD("get_viewport_path_in_scene"), &ViewportDsaTexture::get_viewport_path_in_scene);
+
+	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "viewport_path", PROPERTY_HINT_NODE_PATH_VALID_TYPES, "Viewport", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NODE_PATH_FROM_SCENE_ROOT), "set_viewport_path_in_scene", "get_viewport_path_in_scene");
+}
+
+void ViewportDsaTexture::set_viewport_path_in_scene(const NodePath& p_path)
+{
+	if (path == p_path) {
+		return;
+	}
+
+	path = p_path;
+	vp_changed = true;
+
+	if (vp) {
+		vp->dsa_textures.erase(this);
+		vp = nullptr;
+	}
+
+	if (proxy.is_valid() && proxy_ph.is_null()) {
+		proxy_ph = RS::get_singleton()->texture_2d_placeholder_create();
+		RS::get_singleton()->texture_proxy_update(proxy, proxy_ph);
+	}
+
+	if (get_local_scene() && !path.is_empty()) {
+		setup_local_to_scene();
+	} else {
+		emit_changed();
+	}
+}
+
+NodePath ViewportDsaTexture::get_viewport_path_in_scene() const
+{
+	return path;
+}
+
 void ViewportDsaTexture::setup_local_to_scene()
 {
 	// For the same target viewport, setup is only allowed once to prevent multiple free or multiple creations.
@@ -305,6 +344,11 @@ RID ViewportDsaTexture::get_rid() const
 	return proxy;
 }
 
+bool ViewportDsaTexture::has_alpha() const
+{
+	return false;
+}
+
 Ref<Image> ViewportDsaTexture::get_image() const
 {
 	if (!vp) {
@@ -319,10 +363,23 @@ Ref<Image> ViewportDsaTexture::get_image() const
 
 ViewportDsaTexture::ViewportDsaTexture()
 {
+	set_local_to_scene(true);
 }
 
 ViewportDsaTexture::~ViewportDsaTexture()
 {
+	if (vp) {
+		vp->dsa_textures.erase(this);
+	}
+
+	ERR_FAIL_NULL(RenderingServer::get_singleton());
+
+	if (proxy_ph.is_valid()) {
+		RS::get_singleton()->free(proxy_ph);
+	}
+	if (proxy.is_valid()) {
+		RS::get_singleton()->free(proxy);
+	}
 }
 
 

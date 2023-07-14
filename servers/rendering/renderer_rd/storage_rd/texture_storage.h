@@ -390,6 +390,7 @@ private:
 		Size2i dsa_size;
 		RD::DataFormat dsa_format;
 		RID dsa;
+		RID dsa_texture;
 		RID dsa_fb;
 
 		//clear request
