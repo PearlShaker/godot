@@ -187,17 +187,17 @@ float sample_directional_soft_shadow(texture2D shadow, vec3 pssm_coord, vec2 tex
 
 #endif // SHADOWS_DISABLED
 
-float sample_directional_shadow_linear_distance(texture2D atlas, vec2 uv){
-	float depth = textureLod(sampler2D(atlas, material_samplers[SAMPLER_LINEAR_CLAMP]), uv, 0.0).r;
-	float camera_z_far = 100.0;
-	float camera_z_near = 0.1;
+// float sample_directional_shadow_linear_distance(texture2D atlas, vec2 uv){
+// 	float depth = textureLod(sampler2D(atlas, material_samplers[SAMPLER_LINEAR_CLAMP]), uv, 0.0).r;
+// 	float camera_z_far = 100.0;
+// 	float camera_z_near = 0.1;
 
-	depth = depth * 2.0 - 1.0;
-	depth = 2.0 * 0.1 * params.camera_z_far / (camera_z_far + camera_z_near - depth * (pcamera_z_far - camera_z_near));
-	depth /= camera_z_far;
+// 	depth = depth * 2.0 - 1.0;
+// 	depth = 2.0 * 0.1 * params.camera_z_far / (camera_z_far + camera_z_near - depth * (pcamera_z_far - camera_z_near));
+// 	depth /= camera_z_far;
 
-	return depth;
-}
+// 	return depth;
+// }
 
 float light_process_directional_shadow(texture2D atlas, uint i, vec3 vertex, highp vec2 directional_shadow_pixel_size){
 	float shadow = 1.0;
